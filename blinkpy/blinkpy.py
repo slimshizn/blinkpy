@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 blinkpy is an unofficial api for the Blink security camera system.
 
@@ -16,8 +15,9 @@ blinkpy is in no way affiliated with Blink, nor Immedia Inc.
 import os.path
 import time
 import logging
-from shutil import copyfileobj
-
+import datetime
+import aiofiles
+import aiofiles.ospath
 from requests.structures import CaseInsensitiveDict
 from dateutil.parser import parse
 from slugify import slugify
@@ -45,19 +45,22 @@ class Blink:
         refresh_rate=DEFAULT_REFRESH,
         motion_interval=DEFAULT_MOTION_INTERVAL,
         no_owls=False,
+        session=None,
     ):
         """
         Initialize Blink system.
 
         :param refresh_rate: Refresh rate of blink information.
-                             Defaults to 15 (seconds)
+                             Defaults to 30 (seconds)
         :param motion_interval: How far back to register motion in minutes.
                                 Defaults to last refresh time.
                                 Useful for preventing motion_detected property
                                 from de-asserting too quickly.
-        :param no_owls: Disable searching for owl entries (blink mini cameras only known entity).  Prevents an uneccessary API call if you don't have these in your network.
+        :param no_owls: Disable searching for owl entries (blink mini cameras \
+                        only known entity).  Prevents an unnecessary API call \
+                        if you don't have these in your network.
         """
-        self.auth = Auth()
+        self.auth = Auth(session=session)
         self.account_id = None
         self.client_id = None
         self.network_ids = []
@@ -76,34 +79,39 @@ class Blink:
         self.no_owls = no_owls
 
     @util.Throttle(seconds=MIN_THROTTLE_TIME)
-    def refresh(self, force=False, force_cache=False):
+    async def refresh(self, force=False, force_cache=False):
         """
         Perform a system refresh.
 
         :param force: Used to override throttle, resets refresh
         :param force_cache: Used to force update without overriding throttle
         """
-        if self.check_if_ok_to_update() or force or force_cache:
+        if force or force_cache or self.check_if_ok_to_update():
             if not self.available:
-                self.setup_post_verify()
+                await self.setup_post_verify()
 
-            self.get_homescreen()
+            await self.get_homescreen()
+
             for sync_name, sync_module in self.sync.items():
-                _LOGGER.debug("Attempting refresh of sync %s", sync_name)
-                sync_module.refresh(force_cache=(force or force_cache))
+                _LOGGER.debug("Attempting refresh of blink.sync['%s']", sync_name)
+                await sync_module.refresh(force_cache=(force or force_cache))
+
             if not force_cache:
                 # Prevents rapid clearing of motion detect property
                 self.last_refresh = int(time.time())
+                last_refresh = datetime.datetime.fromtimestamp(self.last_refresh)
+                _LOGGER.debug("last_refresh = %s", last_refresh)
+
             return True
         return False
 
-    def start(self):
+    async def start(self):
         """Perform full system setup."""
         try:
-            self.auth.startup()
+            await self.auth.startup()
             self.setup_login_ids()
             self.setup_urls()
-            self.get_homescreen()
+            await self.get_homescreen()
         except (LoginError, TokenRefreshFailed, BlinkSetupError):
             _LOGGER.error("Cannot setup Blink platform.")
             self.available = False
@@ -113,29 +121,41 @@ class Blink:
         if self.key_required:
             if self.auth.no_prompt:
                 return True
-            self.setup_prompt_2fa()
-        return self.setup_post_verify()
+            await self.setup_prompt_2fa()
 
-    def setup_prompt_2fa(self):
+        if not self.last_refresh:
+            # Initialize last_refresh to be just before the refresh delay period.
+            self.last_refresh = int(time.time() - self.refresh_rate * 1.05)
+            _LOGGER.debug(
+                "Initialized last_refresh to %s == %s",
+                self.last_refresh,
+                datetime.datetime.fromtimestamp(self.last_refresh),
+            )
+
+        return await self.setup_post_verify()
+
+    async def setup_prompt_2fa(self):
         """Prompt for 2FA."""
         email = self.auth.data["username"]
         pin = input(f"Enter code sent to {email}: ")
-        result = self.auth.send_auth_key(self, pin)
+        result = await self.auth.send_auth_key(self, pin)
         self.key_required = not result
 
-    def setup_post_verify(self):
+    async def setup_post_verify(self):
         """Initialize blink system after verification."""
         try:
-            self.setup_networks()
+            if not self.homescreen:
+                await self.get_homescreen()
+            await self.setup_networks()
             networks = self.setup_network_ids()
-            cameras = self.setup_camera_list()
+            cameras = await self.setup_camera_list()
         except BlinkSetupError:
             self.available = False
             return False
 
         for name, network_id in networks.items():
             sync_cameras = cameras.get(network_id, {})
-            self.setup_sync_module(name, network_id, sync_cameras)
+            await self.setup_sync_module(name, network_id, sync_cameras)
 
         self.cameras = self.merge_cameras()
 
@@ -143,20 +163,21 @@ class Blink:
         self.key_required = False
         return True
 
-    def setup_sync_module(self, name, network_id, cameras):
+    async def setup_sync_module(self, name, network_id, cameras):
         """Initialize a sync module."""
         self.sync[name] = BlinkSyncModule(self, name, network_id, cameras)
-        self.sync[name].start()
+        await self.sync[name].start()
 
-    def get_homescreen(self):
-        """Get homecreen information."""
+    async def get_homescreen(self):
+        """Get homescreen information."""
         if self.no_owls:
             _LOGGER.debug("Skipping owl extraction.")
             self.homescreen = {}
             return
-        self.homescreen = api.request_homescreen(self)
+        self.homescreen = await api.request_homescreen(self)
+        _LOGGER.debug("homescreen = %s", util.json_dumps(self.homescreen))
 
-    def setup_owls(self):
+    async def setup_owls(self):
         """Check for mini cameras."""
         network_list = []
         camera_list = []
@@ -172,15 +193,15 @@ class Blink:
                 if owl["onboarded"]:
                     network_list.append(str(network_id))
                     self.sync[name] = BlinkOwl(self, name, network_id, owl)
-                    self.sync[name].start()
-        except KeyError:
+                    await self.sync[name].start()
+        except (KeyError, TypeError):
             # No sync-less devices found
             pass
 
         self.network_ids.extend(network_list)
         return camera_list
 
-    def setup_lotus(self):
+    async def setup_lotus(self):
         """Check for doorbells cameras."""
         network_list = []
         camera_list = []
@@ -202,20 +223,21 @@ class Blink:
                 if lotus["onboarded"]:
                     network_list.append(str(network_id))
                     self.sync[name] = BlinkLotus(self, name, network_id, lotus)
-                    self.sync[name].start()
-        except KeyError:
+                    await self.sync[name].start()
+        except (KeyError, TypeError):
             # No sync-less devices found
             pass
 
         self.network_ids.extend(network_list)
         return camera_list
 
-    def setup_camera_list(self):
+    async def setup_camera_list(self):
         """Create camera list for onboarded networks."""
         all_cameras = {}
-        response = api.request_camera_usage(self)
+        response = await api.request_camera_usage(self)
         try:
             for network in response["networks"]:
+                _LOGGER.info("network = %s", util.json_dumps(network))
                 camera_network = str(network["network_id"])
                 if camera_network not in all_cameras:
                     all_cameras[camera_network] = []
@@ -223,8 +245,8 @@ class Blink:
                     all_cameras[camera_network].append(
                         {"name": camera["name"], "id": camera["id"], "type": "default"}
                     )
-            mini_cameras = self.setup_owls()
-            lotus_cameras = self.setup_lotus()
+            mini_cameras = await self.setup_owls()
+            lotus_cameras = await self.setup_lotus()
             for camera in mini_cameras:
                 for network, camera_info in camera.items():
                     all_cameras[network].append(camera_info)
@@ -232,9 +254,9 @@ class Blink:
                 for network, camera_info in camera.items():
                     all_cameras[network].append(camera_info)
             return all_cameras
-        except (KeyError, TypeError):
+        except (KeyError, TypeError) as ex:
             _LOGGER.error("Unable to retrieve cameras from response %s", response)
-            raise BlinkSetupError
+            raise BlinkSetupError from ex
 
     def setup_login_ids(self):
         """Retrieve login id numbers from login response."""
@@ -245,19 +267,19 @@ class Blink:
         """Create urls for api."""
         try:
             self.urls = util.BlinkURLHandler(self.auth.region_id)
-        except TypeError:
+        except TypeError as ex:
             _LOGGER.error(
                 "Unable to extract region is from response %s", self.auth.login_response
             )
-            raise BlinkSetupError
+            raise BlinkSetupError from ex
 
-    def setup_networks(self):
+    async def setup_networks(self):
         """Get network information."""
-        response = api.request_networks(self)
+        response = await api.request_networks(self)
         try:
             self.networks = response["summary"]
-        except (KeyError, TypeError):
-            raise BlinkSetupError
+        except (KeyError, TypeError) as ex:
+            raise BlinkSetupError from ex
 
     def setup_network_ids(self):
         """Create the network ids for onboarded networks."""
@@ -268,11 +290,11 @@ class Blink:
                 if status["onboarded"]:
                     all_networks.append(f"{network}")
                     network_dict[status["name"]] = network
-        except AttributeError:
+        except AttributeError as ex:
             _LOGGER.error(
                 "Unable to retrieve network information from %s", self.networks
             )
-            raise BlinkSetupError
+            raise BlinkSetupError from ex
 
         self.network_ids = all_networks
         return network_dict
@@ -294,11 +316,26 @@ class Blink:
             combined = util.merge_dicts(combined, self.sync[sync].cameras)
         return combined
 
-    def save(self, file_name):
+    async def save(self, file_name):
         """Save login data to file."""
-        util.json_save(self.auth.login_attributes, file_name)
+        await util.json_save(self.auth.login_attributes, file_name)
 
-    def download_videos(
+    async def get_status(self):
+        """Get the blink system notification status."""
+        response = await api.request_notification_flags(self)
+        return response.get("notifications", response)
+
+    async def set_status(self, data_dict={}):
+        """
+        Set the blink system notification status.
+
+        :param data_dict: Dictionary of notification keys to modify.
+                          Example: {'low_battery': False, 'motion': False}
+        """
+        response = await api.request_set_notification_flag(self, data_dict)
+        return response
+
+    async def download_videos(
         self, path, since=None, camera="all", stop=10, delay=1, debug=False
     ):
         """
@@ -315,6 +352,22 @@ class Blink:
         :param debug: Set to TRUE to prevent downloading of items.
                       Instead of downloading, entries will be printed to log.
         """
+        if not isinstance(camera, list):
+            camera = [camera]
+
+        results = await self.get_videos_metadata(since=since, stop=stop)
+        await self._parse_downloaded_items(results, camera, path, delay, debug)
+
+    async def get_videos_metadata(self, since=None, camera="all", stop=10):
+        """
+        Fetch and return video metadata.
+
+        :param since: Date and time to get videos from.
+                      Ex: "2018/07/28 12:33:00" to retrieve videos since
+                      July 28th 2018 at 12:33:00
+        :param stop: Page to stop on (~25 items per page. Default page 10).
+        """
+        videos = []
         if since is None:
             since_epochs = self.last_refresh
         else:
@@ -324,23 +377,35 @@ class Blink:
         formatted_date = util.get_time(time_to_convert=since_epochs)
         _LOGGER.info("Retrieving videos since %s", formatted_date)
 
-        if not isinstance(camera, list):
-            camera = [camera]
-
         for page in range(1, stop):
-            response = api.request_videos(self, time=since_epochs, page=page)
+            response = await api.request_videos(self, time=since_epochs, page=page)
             _LOGGER.debug("Processing page %s", page)
             try:
                 result = response["media"]
                 if not result:
                     raise KeyError
+                videos.extend(result)
             except (KeyError, TypeError):
                 _LOGGER.info("No videos found on page %s. Exiting.", page)
                 break
+        return videos
 
-            self._parse_downloaded_items(result, camera, path, delay, debug)
+    async def do_http_get(self, address):
+        """
+        Do an http_get on address.
 
-    def _parse_downloaded_items(self, result, camera, path, delay, debug):
+        :param address: address to be added to base_url.
+        """
+        response = await api.http_get(
+            self,
+            url=f"{self.urls.base_url}{address}",
+            stream=True,
+            json=False,
+            timeout=TIMEOUT_MEDIA,
+        )
+        return response
+
+    async def _parse_downloaded_items(self, result, camera, path, delay, debug):
         """Parse downloaded videos."""
         for item in result:
             try:
@@ -360,33 +425,24 @@ class Blink:
                 _LOGGER.debug("%s: %s is marked as deleted.", camera_name, address)
                 continue
 
-            clip_address = f"{self.urls.base_url}{address}"
             filename = f"{camera_name}-{created_at}"
             filename = f"{slugify(filename)}.mp4"
             filename = os.path.join(path, filename)
 
             if not debug:
-                if os.path.isfile(filename):
+                if await aiofiles.ospath.isfile(filename):
                     _LOGGER.info("%s already exists, skipping...", filename)
                     continue
 
-                response = api.http_get(
-                    self,
-                    url=clip_address,
-                    stream=True,
-                    json=False,
-                    timeout=TIMEOUT_MEDIA,
-                )
-                with open(filename, "wb") as vidfile:
-                    copyfileobj(response.raw, vidfile)
+                response = await self.do_http_get(address)
+                async with aiofiles.open(filename, "wb") as vidfile:
+                    await vidfile.write(await response.read())
 
                 _LOGGER.info("Downloaded video to %s", filename)
             else:
                 print(
-                    (
-                        f"Camera: {camera_name}, Timestamp: {created_at}, "
-                        f"Address: {address}, Filename: {filename}"
-                    )
+                    f"Camera: {camera_name}, Timestamp: {created_at}, "
+                    f"Address: {address}, Filename: {filename}"
                 )
             if delay > 0:
                 time.sleep(delay)

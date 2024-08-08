@@ -1,10 +1,13 @@
-blinkpy |Build Status| |Coverage Status| |Docs| |PyPi Version| |Codestyle|
+blinkpy |Build Status| |Coverage Status| |PyPi Version| |Codestyle|
 =============================================================================================
-A Python library for the Blink Camera system (Python 3.7+)
+A Python library for the Blink Camera system (Python 3.9+)
 
 Like the library? Consider buying me a cup of coffee!
 
 `Buy me a Coffee! <https://buymeacoffee.com/kevinfronczak>`__
+
+**BREAKING CHANGE WARNING:**
+As of ``0.22.0`` the library uses asyncio which will break any user scripts used prior to this version. Please see the updated examples below and the ``blinkapp.py`` or ``blinksync.py`` examples in the ``blinkapp/`` directory for examples on how to migrate.
 
 **Disclaimer:**
 Published under the MIT license - See LICENSE file for more details.
@@ -29,14 +32,11 @@ To install the current development version, perform the following steps.  Note t
     $ cd ~
     $ git clone https://github.com/fronzbot/blinkpy.git
     $ cd blinkpy
-    $ rm -rf build dist
-    $ python3 setup.py bdist_wheel
-    $ pip3 install --upgrade dist/*.whl
+    $ pip install .
 
 
 If you'd like to contribute to this library, please read the `contributing instructions <https://github.com/fronzbot/blinkpy/blob/dev/CONTRIBUTING.rst>`__.
 
-For more information on how to use this library, please `read the docs <https://blinkpy.readthedocs.io/en/latest/>`__.
 
 Purpose
 -------
@@ -44,14 +44,20 @@ This library was built with the intention of allowing easy communication with Bl
 
 Quick Start
 =============
-The simplest way to use this package from a terminal is to call ``Blink.start()`` which will prompt for your Blink username and password and then log you in.  In addition, http requests are throttled internally via use of the ``Blink.refresh_rate`` variable, which can be set at initialization and defaults to 30 seconds.
+The simplest way to use this package from a terminal is to call ``await Blink.start()`` which will prompt for your Blink username and password and then log you in.  In addition, http requests are throttled internally via use of the ``Blink.refresh_rate`` variable, which can be set at initialization and defaults to 30 seconds.
 
 .. code:: python
-
+    
+    import asyncio
+    from aiohttp import ClientSession
     from blinkpy.blinkpy import Blink
    
-    blink = Blink()
-    blink.start()
+    async def start():
+        blink = Blink(session=ClientSession())
+        await blink.start()
+        return blink
+
+    blink = asyncio.run(start()) 
 
 
 This flow will prompt you for your username and password.  Once entered, if you likely will need to send a 2FA key to the blink servers (this pin is sent to your email address).  When you receive this pin, enter at the prompt and the Blink library will proceed with setup.
@@ -62,22 +68,28 @@ In some cases, having an interactive command-line session is not desired.  In th
 
 .. code:: python
 
+    import asyncio
+    from aiohttp import ClientSession
     from blinkpy.blinkpy import Blink
     from blinkpy.auth import Auth
 
-    blink = Blink()
-    # Can set no_prompt when initializing auth handler
-    auth = Auth({"username": <your username>, "password": <your password>}, no_prompt=True)
-    blink.auth = auth
-    blink.start()
+    async def start():
+        blink = Blink(session=ClientSession())
+        # Can set no_prompt when initializing auth handler
+        auth = Auth({"username": <your username>, "password": <your password>}, no_prompt=True)
+        blink.auth = auth
+        await blink.start()
+        return blink
+
+    blink = asyncio.run(start())
 
 
 Since you will not be prompted for any 2FA pin, you must call the ``blink.auth.send_auth_key`` function.  There are two required parameters: the ``blink`` object as well as the ``key`` you received from Blink for 2FA:
 
 .. code:: python
 
-    auth.send_auth_key(blink, <your key>)
-    blink.setup_post_verify()
+    await auth.send_auth_key(blink, <your key>)
+    await blink.setup_post_verify()
 
 
 Supplying credentials from file
@@ -86,14 +98,20 @@ Other use cases may involved loading credentials from a file.  This file must be
 
 .. code:: python
 
+    import asyncio
+    from aiohttp import ClientSession
     from blinkpy.blinkpy import Blink
     from blinkpy.auth import Auth
     from blinkpy.helpers.util import json_load
 
-    blink = Blink()
-    auth = Auth(json_load("<File Location>"))
-    blink.auth = auth
-    blink.start()
+    async def start():
+        blink = Blink()
+        auth = Auth(await json_load("<File Location>"))
+        blink.auth = auth
+        await blink.start()
+        return blink
+
+    blink = asyncio.run(start())
 
 
 Saving credentials
@@ -102,7 +120,7 @@ This library also allows you to save your credentials to use in future sessions.
 
 .. code:: python
 
-    blink.save("<File location>")
+    await blink.save("<File location>")
 
 
 Getting cameras
@@ -123,19 +141,19 @@ The most recent images and videos can be accessed as a bytes-object via internal
 .. code:: python
     
     camera = blink.cameras['SOME CAMERA NAME']
-    blink.refresh(force=True)  # force a cache update USE WITH CAUTION
-    camera.image_from_cache.raw  # bytes-like image object (jpg)
-    camera.video_from_cache.raw  # bytes-like video object (mp4)
+    await blink.refresh(force=True)  # force a cache update USE WITH CAUTION
+    camera.image_from_cache  # bytes-like image object (jpg)
+    camera.video_from_cache  # bytes-like video object (mp4)
 
 The ``blinkpy`` api also allows for saving images and videos to a file and snapping a new picture from the camera remotely:
 
 .. code:: python
 
     camera = blink.cameras['SOME CAMERA NAME']
-    camera.snap_picture()       # Take a new picture with the camera
-    blink.refresh()             # Get new information from server
-    camera.image_to_file('/local/path/for/image.jpg')
-    camera.video_to_file('/local/path/for/video.mp4')
+    await camera.snap_picture()       # Take a new picture with the camera
+    await blink.refresh()             # Get new information from server
+    await camera.image_to_file('/local/path/for/image.jpg')
+    await camera.video_to_file('/local/path/for/video.mp4')
 
 
 Arming Blink
@@ -145,13 +163,13 @@ Methods exist to arm/disarm the sync module, as well as enable/disable motion de
 .. code:: python
 
     # Arm a sync module
-    blink.sync["SYNC MODULE NAME"].arm = True
+    await blink.sync["SYNC MODULE NAME"].async_arm(True)
 
     # Disarm a sync module
-    blink.sync["SYNC MODULE NAME"].arm = False
+    await blink.sync["SYNC MODULE NAME"].async_arm(False)
 
     # Print arm status of a sync module - a system refresh should be performed first
-    blink.refresh()
+    await blink.refresh()
     sync = blink.sync["SYNC MODULE NAME"]
     print(f"{sync.name} status: {sync.arm}")
 
@@ -162,13 +180,13 @@ Similar methods exist for individual cameras:
    camera = blink.cameras["SOME CAMERA NAME"]
 
    # Enable motion detection on a camera
-   camera.arm = True
+   await camera.async_arm(True)
 
    # Disable motion detection on a camera
-   camera.arm = False
+   await camera.async_arm( False)
 
    # Print arm status of a sync module - a system refresh should be performed first
-   blink.refresh()
+   await blink.refresh()
    print(f"{camera.name} status: {camera.arm}")
 
 
@@ -180,7 +198,46 @@ Example usage, which downloads all videos recorded since July 4th, 2018 at 9:34a
 
 .. code:: python
 
-    blink.download_videos('/home/blink', since='2018/07/04 09:34', delay=2)
+    await blink.download_videos('/home/blink', since='2018/07/04 09:34', delay=2)
+
+
+Sync Module Local Storage
+=========================
+
+Description of how I think the local storage API is used by Blink
+-----------------------------------------------------------------
+
+Since local storage is within a customer's residence, there are no guarantees for latency
+and availability.  As a result, the API seems to be built to deal with these conditions.
+
+In general, the approach appears to be this:  The Blink app has to query the sync
+module for all information regarding the stored clips.  On a click to view a clip, the app asks
+for the full list of stored clips, finds the clip in question, uploads the clip to the
+cloud, and then downloads the clip back from a cloud URL. Each interaction requires polling for
+the response since networking conditions are uncertain.  The app also caches recent clips and the manifest.
+
+API steps
+---------
+1. Request the local storage manifest be created by the sync module.
+
+   * POST **{base_url}/api/v1/accounts/{account_id}/networks/{network_id}/sync_modules/{sync_id}/local_storage/manifest/request**
+   * Returns an ID that is used to get the manifest.
+
+2. Retrieve the local storage manifest.
+
+   * GET **{base_url}/api/v1/accounts/{account_id}/networks/{network_id}/sync_modules/{sync_id}/local_storage/manifest/request/{manifest_request_id}**
+   * Returns full manifest.
+   * Extract the manifest ID from the response.
+
+3. Find a clip ID in the clips list from the manifest to retrieve, and request an upload.
+
+   * POST **{base_url}/api/v1/accounts/{account_id}/networks/{network_id}/sync_modules/{sync_id}/local_storage/manifest/{manifest_id}/clip/request/{clip_id}**
+   * When the response is returned, the upload has finished.
+
+4. Download the clip using the same clip ID.
+
+   * GET **{base_url}/api/v1/accounts/{account_id}/networks/{network_id}/sync_modules/{sync_id}/local_storage/manifest/{manifest_id}/clip/request/{clip_id}**
+
 
 
 .. |Build Status| image:: https://github.com/fronzbot/blinkpy/workflows/build/badge.svg
@@ -189,7 +246,5 @@ Example usage, which downloads all videos recorded since July 4th, 2018 at 9:34a
     :target: https://codecov.io/gh/fronzbot/blinkpy
 .. |PyPi Version| image:: https://img.shields.io/pypi/v/blinkpy.svg
     :target: https://pypi.python.org/pypi/blinkpy
-.. |Docs| image:: https://readthedocs.org/projects/blinkpy/badge/?version=latest
-   :target: http://blinkpy.readthedocs.io/en/latest/?badge=latest   
 .. |Codestyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black

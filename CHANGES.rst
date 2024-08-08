@@ -4,18 +4,223 @@ Changelog
 
 A list of changes between each release
 
+0.23.0 (2024-06-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See release notes: (`0.23.0 <https://github.com/fronzbot/blinkpy/releases/tag/v0.23.0>`__)
+
+
+0.22.7 (2024-04-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See release notes: (`0.22.7 <https://github.com/fronzbot/blinkpy/releases/tag/v0.22.7>`__)
+
+
+0.22.6 (2024-01-24)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- Test for None type in poll_local_storage_manifest (`@mkmer #859 <https://github.com/fronzbot/blinkpy/pull/859>`__)
+- Update image after snap by (`@mkmer #861 <https://github.com/fronzbot/blinkpy/pull/861>`__)
+- fix missing ':' before port number in rtsps adress (`@Rosi2143 #863 <https://github.com/fronzbot/blinkpy/pull/863>`__)
+- New temperature location (`@mkmer #867 <https://github.com/fronzbot/blinkpy/pull/867>`__)
+
+**Other changes**
+
+- Add properties for version information (`@mkmer #854 <https://github.com/fronzbot/blinkpy/pull/854>`__)
+- Complete header match (`@mkmer #856 <https://github.com/fronzbot/blinkpy/pull/856>`__)
+- Bump ruff from 0.1.11 to 0.1.13 (`@dependabot #858 <https://github.com/fronzbot/blinkpy/pull/858>`__)
+- Add option to change agent from Auth() init (`@mkmer #860 <https://github.com/fronzbot/blinkpy/pull/860>`__)
+- Add notification key to login (`@mkmer #862 <https://github.com/fronzbot/blinkpy/pull/862>`__)
+- Bump ruff from 0.1.13 to 0.1.14 (`@dependabot #868 <https://github.com/fronzbot/blinkpy/pull/868>`__)
+
+
+0.22.5 (2024-01-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Warning: This release removes support for Python 3.8 and adds Python 3.12 support.
+
+**Bugfixes**
+
+- Add new keys for wifi, lfr, and battery (`@mkmer #835 <https://github.com/fronzbot/blinkpy/pull/835>`__)
+- Battery level (`@mkmer #837 <https://github.com/fronzbot/blinkpy/pull/837>`__)
+- Address not awaited warning (`@mkmer #838 <https://github.com/fronzbot/blinkpy/pull/838>`__)
+- Catch ContentTypeError in 2FA (`@mkmer #843 <https://github.com/fronzbot/blinkpy/pull/843>`__)
+- Handle empty put response in wait_command (`@mkmer #847 <https://github.com/fronzbot/blinkpy/pull/847>`__)
+- Change default user agent to fix API calls (`@gingerm0nkey #848 <https://github.com/fronzbot/blinkpy/pull/848>`__)
+- Android for new user agent (`@mkmer #850 <https://github.com/fronzbot/blinkpy/pull/850>`__)
+
+**Other changes**
+
+- Remove Py3.8, add 3.12 (`@fronzbot #839 <https://github.com/fronzbot/blinkpy/pull/839>`__)
+- Deprecate py38 (`@fronzbot #840 <https://github.com/fronzbot/blinkpy/pull/840>`__)
+- Add/extract firmware version (`@mkmer #842 <https://github.com/fronzbot/blinkpy/pull/842>`__)
+- Additional logging, fix blinksync json (`@mkmer #844 <https://github.com/fronzbot/blinkpy/pull/844>`__)
+- Log text response (`@mkmer #845 <https://github.com/fronzbot/blinkpy/pull/845>`__)
+- Add tests for logging (`@mkmer #846 <https://github.com/fronzbot/blinkpy/pull/846>`__)
+- Bump ruff to 0.1.11
+- Bump black to 23.12.1
+- Bump coverage to 7.4.0
+- Bump pytest to 7.4.4
+
+
+0.22.4 (2023-12-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- Allow kwargs to throttled functions, await sleep in throttle (`@mkmer #823 <https://github.com/fronzbot/blinkpy/pull/823>`__)
+- add missing entry in type_key_map (`@Rosi2143 #813 <https://github.com/fronzbot/blinkpy/pull/813>`__)
+
+** Other Changes **
+
+- Delete ReadTheDocs
+- python formatter
+- docstring format changes
+- Bump ruff to 0.1.8
+- Bump black to 23.12.0
+- Bump pygments to 2.17.2
+
+
+0.22.3 (2023-11-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- Check for none and empty dict (fix of home-assistant/core#103312) (`@mkmer #800 <https://github.com/fronzbot/blinkpy/pull/800>`__)
+
+** Other Changes **
+
+- Bump ruff to 0.1.3
+- Bump pytest to 7.4.3
+- Bump black to 23.10.1
+
+
+0.22.2 (2023-10-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Same as 0.22.1 (pypi upload issue)
+
+0.22.1 (2023-10-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- Fix night vision toggling for older devices (owl) (`@cocasema #756 <https://github.com/fronzbot/blinkpy/pull/756>`__)
+- Add missing await to blinkapp.py (`@mkmer #768 <https://github.com/fronzbot/blinkpy/pull/768>`__)
+- Add check command to POST commands (`@mkmer #772 <https://github.com/fronzbot/blinkpy/pull/772>`__)
+- Fix blinkapp session call (`@mkmer #783 <https://github.com/fronzbot/blinkpy/pull/783>`__)
+
+**Other Changes**
+
+- Cleanup readme, add breaking change warning
+- Migrate to puproject.toml + ruff
+- Bump ruff to 0.0.292
+- Bump black to 23.9.1
+- Bump coverage to 7.3.2
+- Bump build to 1.0.3
+- Bump pytest to 7.4.2
+- Bump pytest-timeout to 2.2.0
+- Fix 'stale' github action
+
+0.22.0 (2023-08-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+-None
+
+**New Features**
+
+- Asyncio conversion (`@mkmer #723 <https://github.com/fronzbot/blinkpy/pull/723>`__)
+
+**Other Changes**
+
+- Various fixes to codebase to support asyncio
+- Upgrade flake8 to 6.1.0
+- Upgrade pylint to 2.17.5
+- Upgrade pytest to 7.4.0
+- Upgrade black to 23.7.0
+- Upgrade pytest-cov to 4.1.0
+- Upgrade pygments to 2.16.1
+- Upgrade coverage to 7.3.0
+
+0.21.0 (2023-05-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- None
+
+**New Features**
+
+- Add get_videos_metadata function (`@rhhayward #685 <https://github.com/fronzbot/blinkpy/pull/685>`__)
+- Add night vision toggling support (`@jrhunger #717 <https://github.com/fronzbot/blinkpy/pull/717>`__)
+- Add doorbell arming functionality (`@mkmer #719 <https://github.com/fronzbot/blinkpy/pull/719>`__)
+
+**Other Changes**
+
+- Upgrade pylint to 2.17.4
+- Upgrade coverage to 7.2.5
+- Upgrade pygments to 2.15.1
+- Upgrade pytest to 7.3.1
+- Upgrade pytest-sugar to 0.9.7
+- Upgrade black to 23.3.0
+
+
+0.20.0 (2023-01-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- Misc doorbell fixes (`@jeffothy #623 <https://github.com/fronzbot/blinkpy/pull/623>`__)
+
+**New Features**
+
+- Add support for local storage API (`@perdue #650 <https://github.com/fronzbot/blinkpy/pull/650>`__)
+
+**Other Changes**
+
+- Deprecate py3.7 (`@fronzbot #644 <https://github.com/fronzbot/blinkpy/pull/644>`__)
+- Upgrade pytest to 7.20
+- Upgrade pylint to 2.15.10
+- Upgrade pre-commit to 3.0.2
+- Upgrade black to 22.12.0
+- Upgrade flake8 to 6.0.0
+- Upgrade coverage to 7.1.0
+- Upgrade pydocstyle to 6.3.0
+- Upgrade flake8-docstrings to 1.7.0
+- Upgrade pygments to 2.14.0
+- Upgrade pytest-sugar to 0.9.6
+
+
+0.19.2 (2022-07-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Bugfixes**
+
+- Fix doorbell mapping (`@uvjim #599 <https://github.com/fronzbot/blinkpy/pull/599>`__)
+- Fix the errors for the Blink doorbell camera (`@ruby-dev #603 <https://github.com/fronzbot/blinkpy/pull/603>`__)
+
+**Other Changes**
+
+- dev version bump (`@fronzbot #593 <https://github.com/fronzbot/blinkpy/pull/593>`__)
+- Fix typo in README regarding disarm syntax (`@dashrb #597 <https://github.com/fronzbot/blinkpy/pull/597>`__)
+
+
 0.19.1 (2022-06-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Bugfixes**
 
-- Fix getting doorbell details (`@uvjim <https://github.com/fronzbot/blinkpy/pull/584>`__)
-- Potential fix for mixed camera usage (`#590 <https://github.com/fronzbot/blinkpy/pull/590>`__)
+- Fix getting doorbell details (`@uvjim #584 <https://github.com/fronzbot/blinkpy/pull/584>`__)
+- Potential fix for mixed camera usage (`@fronzbot #590 <https://github.com/fronzbot/blinkpy/pull/590>`__)
 
 **Other Changes**
 
-- doc update (`@dwaltsch <https://github.com/fronzbot/blinkpy/pull/579>`__)
-- Test re-factoring (`#591 <https://github.com/fronzbot/blinkpy/pull/591>`__)
+- doc update (`@dwaltsch #579 <https://github.com/fronzbot/blinkpy/pull/579>`__)
+- Test re-factoring (`@fronzbot #591 <https://github.com/fronzbot/blinkpy/pull/591>`__)
 - Bump pylint to 2.14.3
 - Bump coverage to 6.41
 - Bump black to 22.3.0
@@ -26,19 +231,19 @@ A list of changes between each release
 
 **Bugfixes:**
 
-- Debug log in prase download method fix (`@tieum <https://github.com/fronzbot/blinkpy/pull/540>`__)
-- Fix issue with malformed thumbnails (`#550 <https://github.com/fronzbot/blinkpy/pull/550>`__)
-- Fully support new thumbnail API (`@gdoermann <https://github.com/fronzbot/blinkpy/pull/552>`__)
+- Debug log in prase download method fix (`@tieum #540 <https://github.com/fronzbot/blinkpy/pull/540>`__)
+- Fix issue with malformed thumbnails (`@fronzbot #550 <https://github.com/fronzbot/blinkpy/pull/550>`__)
+- Fully support new thumbnail API (`@gdoermann #552 <https://github.com/fronzbot/blinkpy/pull/552>`__)
 
 **New Features:**
 
-- Support for arm/disarm of Blink Mini cameras (`@mstratford <https://github.com/fronzbot/blinkpy/pull/546>`__)
-- Add product_type to BlinkCamera class to report type of camera (`#553 <https://github.com/fronzbot/blinkpy/pull/553>`__)
-- Remove python 3.6 support, add python 3.10 support (`#554 <https://github.com/fronzbot/blinkpy/pull/554>`__)
+- Support for arm/disarm of Blink Mini cameras (`@mstratford #546 <https://github.com/fronzbot/blinkpy/pull/546>`__)
+- Add product_type to BlinkCamera class to report type of camera (`@fronzbot #553 <https://github.com/fronzbot/blinkpy/pull/553>`__)
+- Remove python 3.6 support, add python 3.10 support (`@fronzbot #554 <https://github.com/fronzbot/blinkpy/pull/554>`__)
 
 **Other:**
 
-- Make code that determines need for unique class (Mini + Doorbells) generic (`#553 <https://github.com/fronzbot/blinkpy/pull/553>`__)
+- Make code that determines need for unique class (Mini + Doorbells) generic (`@fronzbot #553 <https://github.com/fronzbot/blinkpy/pull/553>`__)
 - Bump pre-commit to 2.17.0
 - Bump pytest-timeout to 2.1.0
 - Bump pygments to 2.11.2
@@ -57,7 +262,7 @@ A list of changes between each release
 
 **New Features:**
 
-- Support for Blink Doorbell (`@magicalyak <https://github.com/fronzbot/blinkpy/pull/526>`__)
+- Support for Blink Doorbell (`@magicalyak #526 <https://github.com/fronzbot/blinkpy/pull/526>`__)
 
 **Other:**
 
@@ -74,7 +279,7 @@ A list of changes between each release
 0.17.1 (2021-02-18)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Add delay parameter to Blink.download_videos method in order to throttle API during video retrieval (`#437 <https://github.com/fronzbot/blinkpy/pull/437>`__)
+- Add delay parameter to Blink.download_videos method in order to throttle API during video retrieval (`@fronzbot #437 <https://github.com/fronzbot/blinkpy/pull/437>`__)
 - Bump pylint to 2.6.2
 
 
@@ -83,13 +288,13 @@ A list of changes between each release
 
 **Bugfixes:**
 
-- Fix video downloading bug (`#424 <https://github.com/fronzbot/blinkpy/pull/424>`__)
-- Fix repeated authorization email bug (`#432 <https://github.com/fronzbot/blinkpy/pull/432>`__ and `#428 <https://github.com/fronzbot/blinkpy/pull/428>`__)
+- Fix video downloading bug (`@fronzbot #424 <https://github.com/fronzbot/blinkpy/pull/424>`__)
+- Fix repeated authorization email bug (`@fronzbot #432 <https://github.com/fronzbot/blinkpy/pull/432>`__ and `@fronzbot #428 <https://github.com/fronzbot/blinkpy/pull/428>`__)
 
 **New Features:**
 
-- Add logout method (`#429 <https://github.com/fronzbot/blinkpy/pull/429>`__)
-- Add camera record method (`#430 <https://github.com/fronzbot/blinkpy/pull/430>`__)
+- Add logout method (`@fronzbot #429 <https://github.com/fronzbot/blinkpy/pull/429>`__)
+- Add camera record method (`@fronzbot #430 <https://github.com/fronzbot/blinkpy/pull/430>`__)
 
 **Other:**
 
@@ -109,18 +314,18 @@ A list of changes between each release
 
 **Bugfixes:**
 
-- Updated liveview endpoint (`#389 <https://github.com/fronzbot/blinkpy/pull/389>`__)
-- Fixed mini thumbnail not updating (`#388 <https://github.com/fronzbot/blinkpy/pull/388>`__)
-- Add exception catch to prevent NoneType error on refresh, added test to check behavior as well (`#401 <https://github.com/fronzbot/blinkpy/pull/401>`__)
+- Updated liveview endpoint (`@fronzbot #389 <https://github.com/fronzbot/blinkpy/pull/389>`__)
+- Fixed mini thumbnail not updating (`@fronzbot #388 <https://github.com/fronzbot/blinkpy/pull/388>`__)
+- Add exception catch to prevent NoneType error on refresh, added test to check behavior as well (`@fronzbot #401 <https://github.com/fronzbot/blinkpy/pull/401>`__)
   - Unrelated: had to add two force methods to refresh for testing purposes. Should not change normal usage.
-- Fix malformed stream url (`#395 <https://github.com/fronzbot/blinkpy/pull/395>`__)
+- Fix malformed stream url (`@fronzbot #395 <https://github.com/fronzbot/blinkpy/pull/395>`__)
 
 **All:**
 
-- Moved testtools to requirements_test.txt (`#387 <https://github.com/fronzbot/blinkpy/pull/387>`__)
+- Moved testtools to requirements_test.txt (`@fronzbot #387 <https://github.com/fronzbot/blinkpy/pull/387>`__)
 - Bumped pytest to 6.1.1
 - Bumped flake8 to 3.8.4
-- Fixed README spelling ((`#381 <https://github.com/fronzbot/blinkpy/pull/381>`__) via @rohitsud)
+- Fixed README spelling (`@rohitsud #381 <https://github.com/fronzbot/blinkpy/pull/381>`__)
 - Bumped pygments to 2.7.1
 - Bumped coverage to 5.3
 - Bumped pydocstyle to 5.1.1
@@ -155,19 +360,19 @@ A list of changes between each release
 
 **Breaking Changes:**
 
-- Add arm property to camera, deprecate motion enable method (`#273 <https://github.com/fronzbot/blinkpy/pull/273>`__)
-- Complete refactoring of auth logic (breaks all pre-0.16.0 setups!) (`#261 <https://github.com/fronzbot/blinkpy/pull/261>`__)
+- Add arm property to camera, deprecate motion enable method (`@fronzbot #273 <https://github.com/fronzbot/blinkpy/pull/273>`__)
+- Complete refactoring of auth logic (breaks all pre-0.16.0 setups!) (`@fronzbot #261 <https://github.com/fronzbot/blinkpy/pull/261>`__)
 
 **New Features:**
 
-- Add is_errored property to Auth class (`#275 <https://github.com/fronzbot/blinkpy/pull/275>`__)
-- Add new endpoint to get user infor (`#280 <https://github.com/fronzbot/blinkpy/pull/280>`__)
-- Add get_liveview command to camera module (`#289 <https://github.com/fronzbot/blinkpy/pull/289>`__)
-- Add blink Mini Camera support (`#290 <https://github.com/fronzbot/blinkpy/pull/290>`__)
-- Add option to skip homescreen check (`#305 <https://github.com/fronzbot/blinkpy/pull/305>`__)
-- Add different timeout for video and image retrieval (`#323 <https://github.com/fronzbot/blinkpy/pull/323>`__)
-- Modifiy session to use HTTPAdapter and handle retries (`#324 <https://github.com/fronzbot/blinkpy/pull/324>`__)
-- Add retry option overrides (`#339 <https://github.com/fronzbot/blinkpy/pull/339>`__)
+- Add is_errored property to Auth class (`@fronzbot #275 <https://github.com/fronzbot/blinkpy/pull/275>`__)
+- Add new endpoint to get user infor (`@fronzbot #280 <https://github.com/fronzbot/blinkpy/pull/280>`__)
+- Add get_liveview command to camera module (`@fronzbot #289 <https://github.com/fronzbot/blinkpy/pull/289>`__)
+- Add blink Mini Camera support (`@fronzbot #290 <https://github.com/fronzbot/blinkpy/pull/290>`__)
+- Add option to skip homescreen check (`@fronzbot #305 <https://github.com/fronzbot/blinkpy/pull/305>`__)
+- Add different timeout for video and image retrieval (`@fronzbot #323 <https://github.com/fronzbot/blinkpy/pull/323>`__)
+- Modifiy session to use HTTPAdapter and handle retries (`@fronzbot #324 <https://github.com/fronzbot/blinkpy/pull/324>`__)
+- Add retry option overrides (`@fronzbot #339 <https://github.com/fronzbot/blinkpy/pull/339>`__)
 
 **All changes:**
 
@@ -176,7 +381,7 @@ Please see the change list in the (`Release Notes <https://github.com/fronzbot/r
 
 0.15.1 (2020-07-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Bugfix: remove "Host" from auth header (`#330 <https://github.com/fronzbot/blinkpy/pull/330>`__)
+- Bugfix: remove "Host" from auth header (`@fronzbot #330 <https://github.com/fronzbot/blinkpy/pull/330>`__)
 
 
 0.15.0 (2020-05-08)
@@ -188,21 +393,21 @@ Please see the change list in the (`Release Notes <https://github.com/fronzbot/r
 
 **New Functions**
 
-- Add ``device_id`` override when logging in (for debug and to differentiate applications) (`#245 <https://github.com/fronzbot/blinkpy/pull/245>`__)
+- Add ``device_id`` override when logging in (for debug and to differentiate applications) (`@fronzbot #245 <https://github.com/fronzbot/blinkpy/pull/245>`__)
 
 This can be used by instantiating the Blink class with the ``device_id`` parameter. 
 
 **All Changes:**
 
-- Fix setup.py use of internal pip structure (`#233 <https://github.com/fronzbot/blinkpy/pull/233>`__)
-- Update python-slugify requirement from ~=3.0.2 to ~=4.0.0 (`#234 <https://github.com/fronzbot/blinkpy/pull/234>`__)
-- Update python-dateutil requirement from ~=2.8.0 to ~=2.8.1 (`#230 <https://github.com/fronzbot/blinkpy/pull/230>`__)
-- Bump requests from 2.22.0 to 2.23.0 (`#231 <https://github.com/fronzbot/blinkpy/pull/231>`__)
-- Refactor login logic in preparation for 2FA (`#241 <https://github.com/fronzbot/blinkpy/pull/241>`__)
-- Add 2FA Support (`#242 <https://github.com/fronzbot/blinkpy/pull/242>`__) (fixes (`#210 <https://github.com/fronzbot/blinkpy/pull/210>`__))
-- Re-set key_required and available variables after setup (`#245 <https://github.com/fronzbot/blinkpy/pull/245>`__) 
-- Perform system refresh after setup (`#245 <https://github.com/fronzbot/blinkpy/pull/245>`__)
-- Fix typos (`#244 <https://github.com/fronzbot/blinkpy/pull/244>`__)
+- Fix setup.py use of internal pip structure (`@fronzbot #233 <https://github.com/fronzbot/blinkpy/pull/233>`__)
+- Update python-slugify requirement from ~=3.0.2 to ~=4.0.0 (`@fronzbot #234 <https://github.com/fronzbot/blinkpy/pull/234>`__)
+- Update python-dateutil requirement from ~=2.8.0 to ~=2.8.1 (`@fronzbot #230 <https://github.com/fronzbot/blinkpy/pull/230>`__)
+- Bump requests from 2.22.0 to 2.23.0 (`@fronzbot #231 <https://github.com/fronzbot/blinkpy/pull/231>`__)
+- Refactor login logic in preparation for 2FA (`@fronzbot #241 <https://github.com/fronzbot/blinkpy/pull/241>`__)
+- Add 2FA Support (`@fronzbot #242 <https://github.com/fronzbot/blinkpy/pull/242>`__) (fixes (`#210 <https://github.com/fronzbot/blinkpy/pull/210>`__))
+- Re-set key_required and available variables after setup (`@fronzbot #245 <https://github.com/fronzbot/blinkpy/pull/245>`__) 
+- Perform system refresh after setup (`@fronzbot #245 <https://github.com/fronzbot/blinkpy/pull/245>`__)
+- Fix typos (`@fronzbot #244 <https://github.com/fronzbot/blinkpy/pull/244>`__)
 
 0.14.3 (2020-04-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,7 +420,7 @@ This can be used by instantiating the Blink class with the ``device_id`` paramet
 0.14.2 (2019-10-12)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Update dependencies
-- Dockerize `(@3ch01c <https://github.com/fronzbot/blinkpy/pull/198>__)`
+- Dockerize (`@3ch01c #198 <https://github.com/fronzbot/blinkpy/pull/198>`__)
 
 0.14.1 (2019-06-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

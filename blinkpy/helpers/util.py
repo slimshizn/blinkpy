@@ -1,12 +1,16 @@
 """Useful functions for blinkpy."""
 
 import json
+import random
 import logging
 import time
 import secrets
+import re
+from asyncio import sleep
 from calendar import timegm
 from functools import wraps
 from getpass import getpass
+import aiofiles
 import dateutil.parser
 from blinkpy.helpers import constants as const
 
@@ -14,11 +18,12 @@ from blinkpy.helpers import constants as const
 _LOGGER = logging.getLogger(__name__)
 
 
-def json_load(file_name):
+async def json_load(file_name):
     """Load json credentials from file."""
     try:
-        with open(file_name, "r") as json_file:
-            data = json.load(json_file)
+        async with aiofiles.open(file_name, "r") as json_file:
+            test = await json_file.read()
+            data = json.loads(test)
         return data
     except FileNotFoundError:
         _LOGGER.error("Could not find %s", file_name)
@@ -27,16 +32,25 @@ def json_load(file_name):
     return None
 
 
-def json_save(data, file_name):
+async def json_save(data, file_name):
     """Save data to file location."""
-    with open(file_name, "w") as json_file:
-        json.dump(data, json_file, indent=4)
+    async with aiofiles.open(file_name, "w") as json_file:
+        await json_file.write(json.dumps(data, indent=4))
+
+
+def json_dumps(json_in, indent=2):
+    """Return a well formated json string."""
+    return json.dumps(json_in, indent=indent)
 
 
 def gen_uid(size, uid_format=False):
-    """Create a random sring."""
+    """Create a random string."""
     if uid_format:
-        token = f"BlinkCamera_{secrets.token_hex(4)}-{secrets.token_hex(2)}-{secrets.token_hex(2)}-{secrets.token_hex(2)}-{secrets.token_hex(6)}"
+        token = (
+            f"BlinkCamera_{secrets.token_hex(4)}-"
+            f"{secrets.token_hex(2)}-{secrets.token_hex(2)}-"
+            f"{secrets.token_hex(2)}-{secrets.token_hex(6)}"
+        )
     else:
         token = secrets.token_hex(size)
     return token
@@ -88,6 +102,24 @@ def validate_login_data(data):
     return data
 
 
+def local_storage_clip_url_template():
+    """Return URL template for local storage clip download location."""
+    return (
+        "/api/v1/accounts/$account_id/networks/$network_id/sync_modules/$sync_id"
+        "/local_storage/manifest/$manifest_id/clip/request/$clip_id"
+    )
+
+
+def backoff_seconds(retry=0, default_time=1):
+    """Calculate number of seconds to back off for retry."""
+    return default_time * 2**retry + random.uniform(0, 1)
+
+
+def to_alphanumeric(name):
+    """Convert name to one with only alphanumeric characters."""
+    return re.sub(r"\W+", "", name)
+
+
 class BlinkException(Exception):
     """Class to throw general blink exception."""
 
@@ -130,21 +162,18 @@ class Throttle:
     def __call__(self, method):
         """Throttle caller method."""
 
-        def throttle_method():
-            """Call when method is throttled."""
-            return None
-
         @wraps(method)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             """Wrap that checks for throttling."""
-            force = kwargs.pop("force", False)
+            force = kwargs.get("force", False)
             now = int(time.time())
             last_call_delta = now - self.last_call
             if force or last_call_delta > self.throttle_time:
-                result = method(*args, *kwargs)
                 self.last_call = now
-                return result
+            else:
+                self.last_call = now + last_call_delta
+                await sleep(self.throttle_time - last_call_delta)
 
-            return throttle_method()
+            return await method(*args, **kwargs)
 
         return wrapper
